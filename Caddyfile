@@ -1,0 +1,46 @@
+{
+  auto_https off
+}
+
+:{$PORT} {
+  log {
+    output stdout
+    format console
+  }
+
+  handle /health {
+    respond "gateway ok" 200
+  }
+
+  handle /auth/* {
+    reverse_proxy auth.railway.internal:8001
+  }
+  handle /profile/* {
+    reverse_proxy profile.railway.internal:8002
+  }
+  handle /symptoms/* {
+    reverse_proxy symptom.railway.internal:8003
+  }
+  handle /chat/* {
+    reverse_proxy chat.railway.internal:8004
+  }
+  handle /tracker/* {
+    reverse_proxy tracker.railway.internal:8005
+  }
+  handle /notifications/* {
+    reverse_proxy notification.railway.internal:8006
+  }
+  handle /agent/* {
+    reverse_proxy agent.railway.internal:8007
+  }
+  handle /billing/* {
+    reverse_proxy billing.railway.internal:8008
+  }
+  handle /data/* {
+    reverse_proxy data.railway.internal:8009
+  }
+
+  handle {
+    respond "Not Found" 404
+  }
+}
