@@ -12,31 +12,70 @@
     respond "gateway ok" 200
   }
 
+  # Auth service - no prefix in service, route everything under /auth
   handle_path /auth/* {
     reverse_proxy auth.railway.internal:8001
   }
-  handle_path /profile/* {
+  handle /auth {
+    rewrite * /
+    reverse_proxy auth.railway.internal:8001
+  }
+
+  # Profile service has @router prefix="/profile" so KEEP the prefix
+  handle /profile {
     reverse_proxy profile.railway.internal:8002
   }
-  handle_path /symptoms/* {
+  handle /profile/* {
+    reverse_proxy profile.railway.internal:8002
+  }
+
+  # Other services - assuming similar pattern with router prefixes
+  handle /symptoms {
     reverse_proxy symptom.railway.internal:8003
   }
-  handle_path /chat/* {
+  handle /symptoms/* {
+    reverse_proxy symptom.railway.internal:8003
+  }
+
+  handle /chat {
     reverse_proxy chat.railway.internal:8004
   }
-  handle_path /tracker/* {
+  handle /chat/* {
+    reverse_proxy chat.railway.internal:8004
+  }
+
+  handle /tracker {
     reverse_proxy tracker.railway.internal:8005
   }
-  handle_path /notifications/* {
+  handle /tracker/* {
+    reverse_proxy tracker.railway.internal:8005
+  }
+
+  handle /notifications {
     reverse_proxy notification.railway.internal:8006
   }
-  handle_path /agent/* {
+  handle /notifications/* {
+    reverse_proxy notification.railway.internal:8006
+  }
+
+  handle /agent {
     reverse_proxy agent.railway.internal:8007
   }
-  handle_path /billing/* {
+  handle /agent/* {
+    reverse_proxy agent.railway.internal:8007
+  }
+
+  handle /billing {
     reverse_proxy billing.railway.internal:8008
   }
-  handle_path /data/* {
+  handle /billing/* {
+    reverse_proxy billing.railway.internal:8008
+  }
+
+  handle /data {
+    reverse_proxy data.railway.internal:8009
+  }
+  handle /data/* {
     reverse_proxy data.railway.internal:8009
   }
 
