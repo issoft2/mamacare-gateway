@@ -12,31 +12,31 @@
     respond "gateway ok" 200
   }
 
-  handle /auth/* {
+  handle_path /auth/* {
     reverse_proxy auth.railway.internal:8001
   }
-  handle /profile/* {
+  handle_path /profile/* {
     reverse_proxy profile.railway.internal:8002
   }
-  handle /symptoms/* {
+  handle_path /symptoms/* {
     reverse_proxy symptom.railway.internal:8003
   }
-  handle /chat/* {
+  handle_path /chat/* {
     reverse_proxy chat.railway.internal:8004
   }
-  handle /tracker/* {
+  handle_path /tracker/* {
     reverse_proxy tracker.railway.internal:8005
   }
-  handle /notifications/* {
+  handle_path /notifications/* {
     reverse_proxy notification.railway.internal:8006
   }
-  handle /agent/* {
+  handle_path /agent/* {
     reverse_proxy agent.railway.internal:8007
   }
-  handle /billing/* {
+  handle_path /billing/* {
     reverse_proxy billing.railway.internal:8008
   }
-  handle /data/* {
+  handle_path /data/* {
     reverse_proxy data.railway.internal:8009
   }
 
