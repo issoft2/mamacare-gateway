@@ -8,11 +8,27 @@
     format console
   }
 
+  # CORS headers for all responses
+  @cors_preflight method OPTIONS
+  handle @cors_preflight {
+    header Access-Control-Allow-Origin "{header.Origin}"
+    header Access-Control-Allow-Credentials "true"
+    header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    header Access-Control-Allow-Headers "Authorization, Content-Type, Accept"
+    header Access-Control-Max-Age "3600"
+    respond "" 204
+  }
+
+  header {
+    Access-Control-Allow-Origin "{header.Origin}"
+    Access-Control-Allow-Credentials "true"
+    defer
+  }
+
   handle /health {
     respond "gateway ok" 200
   }
 
-  # Auth service - no prefix in service, route everything under /auth
   handle_path /auth/* {
     reverse_proxy auth.railway.internal:8001
   }
@@ -21,7 +37,6 @@
     reverse_proxy auth.railway.internal:8001
   }
 
-  # Profile service has @router prefix="/profile" so KEEP the prefix
   handle /profile {
     reverse_proxy profile.railway.internal:8002
   }
@@ -29,7 +44,6 @@
     reverse_proxy profile.railway.internal:8002
   }
 
-  # Other services - assuming similar pattern with router prefixes
   handle /symptoms {
     reverse_proxy symptom.railway.internal:8003
   }
