@@ -93,6 +93,14 @@
     reverse_proxy data.railway.internal:8009
   }
 
+  handle /content {
+    reverse_proxy content.railway.internal:8010
+  }
+
+  handle /content/* {
+    reverse_proxy content.railway.internal:8010
+  }
+
   handle {
     respond "Not Found" 404
   }
