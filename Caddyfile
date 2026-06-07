@@ -10,18 +10,7 @@
   }
 
   #################################################################
-  # SECURITY: Strip spoofable headers from external clients
-  #################################################################
-
-  request_header {
-    -X-Forwarded-For
-    -X-Real-Ip
-    -X-Forwarded-Host
-    -X-Forwarded-Proto
-  }
-
-  #################################################################
-  # CORS (STRICT - production safe)
+  # CORS
   #################################################################
 
   @cors_preflight method OPTIONS
@@ -41,7 +30,7 @@
   }
 
   #################################################################
-  # AUTH PROXY (SAFE HEADER FORWARDING ONLY)
+  # AUTH PROXY SNIPPET
   #################################################################
 
   (auth_proxy) {
@@ -53,24 +42,16 @@
   }
 
   #################################################################
-  # HEALTH CHECK
+  # ROUTES
   #################################################################
 
   handle /health {
     respond "gateway ok" 200
   }
 
-  #################################################################
-  # PUBLIC AUTH SERVICE (Clerk / login)
-  #################################################################
-
   handle_path /auth/* {
     reverse_proxy auth.railway.internal:8001
   }
-
-  #################################################################
-  # PROTECTED SERVICES (Clerk JWT REQUIRED downstream)
-  #################################################################
 
   handle /profile* {
     reverse_proxy profile.railway.internal:8002 {
@@ -125,10 +106,6 @@
       import auth_proxy
     }
   }
-
-  #################################################################
-  # FALLBACK
-  #################################################################
 
   handle {
     respond "Not Found" 404
