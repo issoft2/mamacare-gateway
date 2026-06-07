@@ -29,17 +29,6 @@
     -Server
   }
 
-  #################################################################
-  # AUTH PROXY SNIPPET
-  #################################################################
-
-  (auth_proxy) {
-    header_up Authorization {header.Authorization}
-    header_up X-Forwarded-Proto {scheme}
-    header_up X-Real-IP {remote}
-    header_up X-Forwarded-For {remote}
-    header_up Host {host}
-  }
 
   #################################################################
   # ROUTES
@@ -55,55 +44,91 @@
 
   handle /profile* {
     reverse_proxy profile.railway.internal:8002 {
-      import auth_proxy
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
     }
   }
 
   handle /symptoms* {
     reverse_proxy symptom.railway.internal:8003 {
-      import auth_proxy
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
     }
   }
 
   handle /chat* {
     reverse_proxy chat.railway.internal:8004 {
-      import auth_proxy
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
     }
   }
 
   handle /tracker* {
     reverse_proxy tracker.railway.internal:8005 {
-      import auth_proxy
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
     }
   }
 
   handle /notifications* {
     reverse_proxy notification.railway.internal:8006 {
-      import auth_proxy
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
     }
   }
 
   handle /agent* {
     reverse_proxy agent.railway.internal:8007 {
-      import auth_proxy
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
     }
   }
 
   handle /billing* {
     reverse_proxy billing.railway.internal:8008 {
-      import auth_proxy
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
     }
   }
 
   handle /data* {
     reverse_proxy data.railway.internal:8009 {
-      import auth_proxy
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
     }
   }
 
   handle /content* {
     reverse_proxy content.railway.internal:8010 {
-      import auth_proxy
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
     }
   }
 
