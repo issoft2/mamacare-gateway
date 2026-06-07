@@ -3,15 +3,30 @@
 }
 
 :{$PORT} {
+
   log {
     output stdout
-    format console
+    format json
   }
 
-  # CORS headers for all responses
+  #################################################################
+  # SECURITY: Strip spoofable headers from external clients
+  #################################################################
+
+  request_header {
+    -X-Forwarded-For
+    -X-Real-Ip
+    -X-Forwarded-Host
+    -X-Forwarded-Proto
+  }
+
+  #################################################################
+  # CORS (STRICT - production safe)
+  #################################################################
+
   @cors_preflight method OPTIONS
   handle @cors_preflight {
-    header Access-Control-Allow-Origin "{header.Origin}"
+    header Access-Control-Allow-Origin "https://safeborn.app"
     header Access-Control-Allow-Credentials "true"
     header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     header Access-Control-Allow-Headers "Authorization, Content-Type, Accept"
@@ -20,86 +35,100 @@
   }
 
   header {
-    Access-Control-Allow-Origin "{header.Origin}"
+    Access-Control-Allow-Origin "https://safeborn.app"
     Access-Control-Allow-Credentials "true"
-    defer
+    -Server
   }
+
+  #################################################################
+  # AUTH PROXY (SAFE HEADER FORWARDING ONLY)
+  #################################################################
+
+  (auth_proxy) {
+    header_up Authorization {header.Authorization}
+    header_up X-Forwarded-Proto {scheme}
+    header_up X-Real-IP {remote}
+    header_up X-Forwarded-For {remote}
+    header_up Host {host}
+  }
+
+  #################################################################
+  # HEALTH CHECK
+  #################################################################
 
   handle /health {
     respond "gateway ok" 200
   }
 
+  #################################################################
+  # PUBLIC AUTH SERVICE (Clerk / login)
+  #################################################################
+
   handle_path /auth/* {
     reverse_proxy auth.railway.internal:8001
   }
-  handle /auth {
-    rewrite * /
-    reverse_proxy auth.railway.internal:8001
+
+  #################################################################
+  # PROTECTED SERVICES (Clerk JWT REQUIRED downstream)
+  #################################################################
+
+  handle /profile* {
+    reverse_proxy profile.railway.internal:8002 {
+      import auth_proxy
+    }
   }
 
-  handle /profile {
-    reverse_proxy profile.railway.internal:8002
-  }
-  handle /profile/* {
-    reverse_proxy profile.railway.internal:8002
-  }
-
-  handle /symptoms {
-    reverse_proxy symptom.railway.internal:8003
-  }
-  handle /symptoms/* {
-    reverse_proxy symptom.railway.internal:8003
+  handle /symptoms* {
+    reverse_proxy symptom.railway.internal:8003 {
+      import auth_proxy
+    }
   }
 
-  handle /chat {
-    reverse_proxy chat.railway.internal:8004
-  }
-  handle /chat/* {
-    reverse_proxy chat.railway.internal:8004
-  }
-
-  handle /tracker {
-    reverse_proxy tracker.railway.internal:8005
-  }
-  handle /tracker/* {
-    reverse_proxy tracker.railway.internal:8005
+  handle /chat* {
+    reverse_proxy chat.railway.internal:8004 {
+      import auth_proxy
+    }
   }
 
-  handle /notifications {
-    reverse_proxy notification.railway.internal:8006
-  }
-  handle /notifications/* {
-    reverse_proxy notification.railway.internal:8006
-  }
-
-  handle /agent {
-    reverse_proxy agent.railway.internal:8007
-  }
-  handle /agent/* {
-    reverse_proxy agent.railway.internal:8007
+  handle /tracker* {
+    reverse_proxy tracker.railway.internal:8005 {
+      import auth_proxy
+    }
   }
 
-  handle /billing {
-    reverse_proxy billing.railway.internal:8008
-  }
-  handle /billing/* {
-    reverse_proxy billing.railway.internal:8008
-  }
-
-  handle /data {
-    reverse_proxy data.railway.internal:8009
-  }
-  handle /data/* {
-    reverse_proxy data.railway.internal:8009
+  handle /notifications* {
+    reverse_proxy notification.railway.internal:8006 {
+      import auth_proxy
+    }
   }
 
-  handle /content {
-    reverse_proxy content.railway.internal:8010
+  handle /agent* {
+    reverse_proxy agent.railway.internal:8007 {
+      import auth_proxy
+    }
   }
 
-  handle /content/* {
-    reverse_proxy content.railway.internal:8010
+  handle /billing* {
+    reverse_proxy billing.railway.internal:8008 {
+      import auth_proxy
+    }
   }
+
+  handle /data* {
+    reverse_proxy data.railway.internal:8009 {
+      import auth_proxy
+    }
+  }
+
+  handle /content* {
+    reverse_proxy content.railway.internal:8010 {
+      import auth_proxy
+    }
+  }
+
+  #################################################################
+  # FALLBACK
+  #################################################################
 
   handle {
     respond "Not Found" 404
