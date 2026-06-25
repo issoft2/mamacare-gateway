@@ -140,7 +140,7 @@
   }
 
   handle /pregnancy* {
-    reverse_proxy content.railway.internal:8011 {
+    reverse_proxy pregnancy.railway.internal:8011 {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
