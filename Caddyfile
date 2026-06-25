@@ -139,6 +139,17 @@
     }
   }
 
+   handle /pregnancy* {
+    reverse_proxy content.railway.internal:8011 {
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
+    }
+  }
+
+
   handle {
     respond "Not Found" 404
   }
