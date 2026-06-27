@@ -149,7 +149,7 @@
     }
   }
 
-  handle /community* {
+  handle /communities* {
     reverse_proxy community.railway.internal:8012 {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
