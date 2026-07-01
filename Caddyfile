@@ -159,6 +159,16 @@
     }
   }
 
+  handle /feedback* {
+    reverse_proxy feedback.railway.internal:8013 {
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
+    }
+  }
+
   # ── WebSocket route for community real-time streaming ──────────────────────
   # Must be defined separately from /communities* because WebSocket upgrade
   # requests require explicit header forwarding to complete the handshake.
