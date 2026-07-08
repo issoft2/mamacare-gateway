@@ -101,6 +101,10 @@
 
   handle /agent* {
     reverse_proxy agent.railway.internal:8007 {
+      # Allow Websokets to upgrade gracefully through this path
+      header_up Connection {header.Connection}
+      header_up Upgrade {header.Upgrade}
+
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
