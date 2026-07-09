@@ -173,6 +173,25 @@
     }
   }
 
+
+  # ── NEW NEURAL VOICE ENGINE ROUTE ──────────────────────────────────────────
+  # handle_path strips "/voice" automatically so /voice/transcribe maps to /transcribe
+  handle_path /voice* {
+    reverse_proxy voice.railway.internal:8081 {
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
+
+      # Extended timeouts to prevent Caddy from dropping active audio streams or large chunk processing
+      transport http {
+        response_header_timeout 30s
+        read_timeout 60s
+      }
+    }
+  }
+
   # ── WebSocket route for community real-time streaming ──────────────────────
   # Must be defined separately from /communities* because WebSocket upgrade
   # requests require explicit header forwarding to complete the handshake.
