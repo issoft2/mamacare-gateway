@@ -175,7 +175,7 @@
 
 
   # ── NEW NEURAL VOICE ENGINE ROUTE ──────────────────────────────────────────
-  # handle_path strips "/voice" automatically so /voice/transcribe maps to /transcribe
+  # ── UPDATED VOICE ROUTE WITH STREAM FLUSHING ──────────────────────────────
   handle_path /voice* {
     reverse_proxy transcribe.railway.internal:8081 {
       header_up Authorization {header.Authorization}
@@ -184,10 +184,12 @@
       header_up X-Forwarded-For {remote}
       header_up Host {host}
 
-      # Extended timeouts to prevent Caddy from dropping active audio streams or large chunk processing
+      # Forces Caddy to push audio packets to the phone immediately as they arrive
+      flush_interval -1
+
       transport http {
-        response_header_timeout 30s
-        read_timeout 60s
+        response_header_timeout 60s
+        read_timeout 90s
       }
     }
   }
