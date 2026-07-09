@@ -177,7 +177,7 @@
   # ── NEW NEURAL VOICE ENGINE ROUTE ──────────────────────────────────────────
   # handle_path strips "/voice" automatically so /voice/transcribe maps to /transcribe
   handle_path /voice* {
-    reverse_proxy voice.railway.internal:8081 {
+    reverse_proxy transcribe.railway.internal:8081 {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
