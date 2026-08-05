@@ -173,6 +173,31 @@
     }
   }
 
+  # ── Pregnancy Journey Engine (Phases 1 & 4) ─────────────────────────────────
+  # state-engine and labour services are not yet deployed on Railway — these
+  # routes will 404 until the corresponding services exist and are configured
+  # to listen on the ports below (or whatever port they're actually deployed
+  # with; update to match).
+  handle /state-engine* {
+    reverse_proxy state-engine.railway.internal:8014 {
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
+    }
+  }
+
+  handle /labour* {
+    reverse_proxy labour.railway.internal:8015 {
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
+    }
+  }
+
 
   # ── NEW NEURAL VOICE ENGINE ROUTE ──────────────────────────────────────────
   # ── UPDATED VOICE ROUTE WITH STREAM FLUSHING ──────────────────────────────
