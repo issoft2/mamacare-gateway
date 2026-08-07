@@ -199,10 +199,17 @@
   }
 
 
-  # ── NEW NEURAL VOICE ENGINE ROUTE ──────────────────────────────────────────
-  # ── UPDATED VOICE ROUTE WITH STREAM FLUSHING ──────────────────────────────
-  handle_path /voice* {
-    reverse_proxy transcribe.railway.internal:8081 {
+  # ── VOICE ROUTE — now gated through chat_service, not the transcribe
+  # service directly. Voice is a paid (Standard+) feature and every call
+  # here is a billed request to the external transcribe service, so the
+  # plan check has to happen BEFORE that service is ever reached — it
+  # does no plan checking of its own. chat_service's /voice/* routes
+  # (require_plan("standard")) do the gating, then proxy through to
+  # transcribe.railway.internal themselves. handle (not handle_path) is
+  # deliberate — chat_service's router expects the full /voice/... path,
+  # not a stripped one.
+  handle /voice* {
+    reverse_proxy chat.railway.internal:8004 {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
