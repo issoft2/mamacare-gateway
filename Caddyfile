@@ -12,14 +12,16 @@
   #################################################################
   # CORS
   #################################################################
-  # Was a single hardcoded Access-Control-Allow-Origin — silently blocked
-  # every other real origin (mumcare-admin.vercel.app, mumcare-mobile.vercel.app)
-  # regardless of what each backend service's own CORS_ALLOWED_ORIGINS
-  # allowed, since Caddy answers OPTIONS preflight itself and never
-  # forwards it to the backend. Reflects the Origin header back only when
-  # it matches this allow-list — same effective policy as an explicit
-  # allow-list, not an open one (credentialed requests + "*" isn't valid
-  # per the CORS spec anyway).
+  # Only short-circuits OPTIONS preflight here (cheap, avoids a round
+  # trip to the backend for every preflight). Every backend service
+  # already runs its own CORSMiddleware with the same effective
+  # allow-list (CORS_ALLOWED_ORIGINS) and correctly handles CORS on the
+  # actual GET/POST/etc. response — this file must NOT also add
+  # Access-Control-Allow-Origin/-Credentials to proxied responses, or a
+  # real request ends up with the header twice (once from here, once
+  # from the backend). Two Access-Control-Allow-Origin values is invalid
+  # per the Fetch spec and browsers reject the response outright, even
+  # though curl happily prints both and makes it look fine.
 
   @cors_allowed_origin header_regexp origin Origin ^https://(safeborn\.app|mumcare-admin\.vercel\.app|mumcare-mobile\.vercel\.app)$|^http://localhost:(3000|8081)$
 
@@ -34,12 +36,7 @@
   }
 
   header {
-    Vary "Origin"
     -Server
-  }
-  header @cors_allowed_origin {
-    Access-Control-Allow-Origin "{http.request.header.Origin}"
-    Access-Control-Allow-Credentials "true"
   }
 
 
