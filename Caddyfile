@@ -79,6 +79,19 @@
     }
   }
 
+  # Pathway Review & Sign-off — mounted on symptom_service but at its own
+  # /clinical-pathways prefix, not under /symptoms*, so it needs its own
+  # route here too.
+  handle /clinical-pathways* {
+    reverse_proxy symptom.railway.internal:8003 {
+      header_up Authorization {header.Authorization}
+      header_up X-Forwarded-Proto {scheme}
+      header_up X-Real-IP {remote}
+      header_up X-Forwarded-For {remote}
+      header_up Host {host}
+    }
+  }
+
   handle /chat* {
     reverse_proxy chat.railway.internal:8004 {
       header_up Authorization {header.Authorization}
