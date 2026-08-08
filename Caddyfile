@@ -231,6 +231,13 @@
   # transcribe.railway.internal themselves. handle (not handle_path) is
   # deliberate — chat_service's router expects the full /voice/... path,
   # not a stripped one.
+  #
+  # Also covers /voice/ws/stream-transcribe (Premium-only Deepgram
+  # streaming STT) — Connection/Upgrade header forwarding is required for
+  # that WS upgrade handshake to reach chat_service at all; without it,
+  # the connection dies here even if the FastAPI route itself is correct
+  # (same gap /communities* originally had — see the /ws/* block below,
+  # which needed its own separate handle{} for exactly this reason).
   handle /voice* {
     reverse_proxy chat.railway.internal:8004 {
       header_up Authorization {header.Authorization}
@@ -238,6 +245,8 @@
       header_up X-Real-IP {remote}
       header_up X-Forwarded-For {remote}
       header_up Host {host}
+      header_up Connection {header.Connection}
+      header_up Upgrade {header.Upgrade}
 
       # Forces Caddy to push audio packets to the phone immediately as they arrive
       flush_interval -1
