@@ -23,7 +23,7 @@
   # per the Fetch spec and browsers reject the response outright, even
   # though curl happily prints both and makes it look fine.
 
-  @cors_allowed_origin header_regexp origin Origin ^https://(safeborn\.app|admin\.safeborn\.app|mumcare-admin\.vercel\.app|mumcare-mobile\.vercel\.app)$|^http://localhost:(3000|8081)$
+  @cors_allowed_origin header_regexp origin Origin ^https://(safeborn\.app|admin\.safeborn\.app|staging\.safeborn\.app|staging-admin\.safeborn\.app|mumcare-admin\.vercel\.app|mumcare-mobile\.vercel\.app)$|^http://localhost:(3000|8081)$
 
   @cors_preflight method OPTIONS
   handle @cors_preflight {
