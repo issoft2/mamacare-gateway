@@ -43,13 +43,25 @@
   #################################################################
   # ROUTES
   #################################################################
+  # Every route except /agent* can be served by the backend's combined
+  # `api` service (services/api_service in the backend repo), which runs
+  # all of those services in one process. API_UPSTREAM picks where they go:
+  #
+  #   unset                          → each route's own service, as below
+  #   api.railway.internal:8000      → the combined api service
+  #
+  # So the cutover is one variable on the gateway and rollback is unsetting
+  # it. Paths are never rewritten either way — the frontend calls exactly
+  # the same URLs. /agent* always goes to agent_service: it hosts the
+  # urgent-alert escalation worker and is deliberately kept out of the
+  # shared process.
 
   handle /health {
     respond "gateway ok" 200
   }
 
   handle /auth* {
-    reverse_proxy auth.railway.internal:8001 {
+    reverse_proxy {$API_UPSTREAM:auth.railway.internal:8001} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -59,7 +71,7 @@
   }
 
   handle /profile* {
-    reverse_proxy profile.railway.internal:8002 {
+    reverse_proxy {$API_UPSTREAM:profile.railway.internal:8002} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -70,7 +82,7 @@
 
 
   handle /symptoms* {
-    reverse_proxy symptom.railway.internal:8003 {
+    reverse_proxy {$API_UPSTREAM:symptom.railway.internal:8003} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -83,7 +95,7 @@
   # /clinical-pathways prefix, not under /symptoms*, so it needs its own
   # route here too.
   handle /clinical-pathways* {
-    reverse_proxy symptom.railway.internal:8003 {
+    reverse_proxy {$API_UPSTREAM:symptom.railway.internal:8003} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -93,7 +105,7 @@
   }
 
   handle /chat* {
-    reverse_proxy chat.railway.internal:8004 {
+    reverse_proxy {$API_UPSTREAM:chat.railway.internal:8004} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -103,7 +115,7 @@
   }
 
   handle /tracker* {
-    reverse_proxy tracker.railway.internal:8005 {
+    reverse_proxy {$API_UPSTREAM:tracker.railway.internal:8005} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -113,7 +125,7 @@
   }
 
   handle /notifications* {
-    reverse_proxy notification.railway.internal:8006 {
+    reverse_proxy {$API_UPSTREAM:notification.railway.internal:8006} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -137,7 +149,7 @@
   }
 
   handle /billing* {
-    reverse_proxy billing.railway.internal:8008 {
+    reverse_proxy {$API_UPSTREAM:billing.railway.internal:8008} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -147,7 +159,7 @@
   }
 
   handle /data* {
-    reverse_proxy data.railway.internal:8009 {
+    reverse_proxy {$API_UPSTREAM:data.railway.internal:8009} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -157,7 +169,7 @@
   }
 
   handle /content* {
-    reverse_proxy content.railway.internal:8010 {
+    reverse_proxy {$API_UPSTREAM:content.railway.internal:8010} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -167,7 +179,7 @@
   }
 
   handle /pregnancy* {
-    reverse_proxy pregnancy.railway.internal:8011 {
+    reverse_proxy {$API_UPSTREAM:pregnancy.railway.internal:8011} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -177,7 +189,7 @@
   }
 
   handle /communities* {
-    reverse_proxy community.railway.internal:8012 {
+    reverse_proxy {$API_UPSTREAM:community.railway.internal:8012} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -187,7 +199,7 @@
   }
 
   handle /feedback* {
-    reverse_proxy feedback.railway.internal:8013 {
+    reverse_proxy {$API_UPSTREAM:feedback.railway.internal:8013} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -202,7 +214,7 @@
   # to listen on the ports below (or whatever port they're actually deployed
   # with; update to match).
   handle /state-engine* {
-    reverse_proxy state-engine.railway.internal:8014 {
+    reverse_proxy {$API_UPSTREAM:state-engine.railway.internal:8014} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -212,7 +224,7 @@
   }
 
   handle /labour* {
-    reverse_proxy labour.railway.internal:8015 {
+    reverse_proxy {$API_UPSTREAM:labour.railway.internal:8015} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -239,7 +251,7 @@
   # (same gap /communities* originally had — see the /ws/* block below,
   # which needed its own separate handle{} for exactly this reason).
   handle /voice* {
-    reverse_proxy chat.railway.internal:8004 {
+    reverse_proxy {$API_UPSTREAM:chat.railway.internal:8004} {
       header_up Authorization {header.Authorization}
       header_up X-Forwarded-Proto {scheme}
       header_up X-Real-IP {remote}
@@ -263,7 +275,7 @@
   # requests require explicit header forwarding to complete the handshake.
   # Without this rule, /ws/* hits the 404 fallback and the upgrade is rejected.
   handle /ws/* {
-    reverse_proxy community.railway.internal:8012 {
+    reverse_proxy {$API_UPSTREAM:community.railway.internal:8012} {
       header_up Connection {header.Connection}
       header_up Upgrade {header.Upgrade}
       header_up Authorization {header.Authorization}
